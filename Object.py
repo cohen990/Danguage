@@ -3,7 +3,7 @@ class Object:
 		self.value = value
 		self.type = objectType
 	def __str__(self):
-		return self.value + " <" + self.type + ">"
+		return str(self.value) + " <" + self.type + ">"
 	def __unicode__(self):
 		return u(self.__str__())
 	def __repr__(self):

@@ -2,14 +2,17 @@ from InternalStateProvider import *
 import re
 
 class Parser:
-	def parse(code):
+	def __init__(self, stateProvider):
+		self.stateProvider = stateProvider
+
+	def parse(self, code):
 		if(code == ""): return
-		statements = Parser.getStatements(code=code)
+		statements = self.getStatements(code=code)
 		for statement in statements:
 			if("=" in statement):
-				Parser.parseAssignmentStatement(statement)
+				self.parseAssignmentStatement(statement)
 
-	def getStatements(code):
+	def getStatements(self, code):
 		if not code: return [""]
 		
 		rawStatements = code.split("\n");
@@ -18,57 +21,66 @@ class Parser:
 
 		return statements
 
-	def parseAssignmentStatement(statement):
+	def parseAssignmentStatement(self, statement):
 		codeBlocks = statement.split()
 
-		leftHandSide, rightHandSide = Parser.getLeftAndRightOfOperation(
+		leftHandSide, rightHandSide = self.getLeftAndRightOfOperation(
 			codeBlocks, '=')
 
 		rightHandSideValue = rightHandSide[0]
 
 		if(len(rightHandSide) > 1):
-			rightHandSideValue = Parser.evaluate(rightHandSide)
+			rightHandSideValue = self.evaluate(rightHandSide)
 
-		if(leftHandSide[0] in InternalStateProvider.knownTypes):
-			Parser.assign(key=leftHandSide[1], value=rightHandSideValue)
+		if(leftHandSide[0] in self.stateProvider.knownTypes):
+			self.assign(key=leftHandSide[1], value=rightHandSideValue)
 		else:
-			Parser.assign(key=leftHandSide[0], value=rightHandSideValue)
+			self.assign(key=leftHandSide[0], value=rightHandSideValue)
 
-	def getLeftAndRightOfOperation(codeBlocks, operator):
+	def getLeftAndRightOfOperation(self, codeBlocks, operator):
 		if not codeBlocks or operator not in codeBlocks:
 			raise ParserError(
-				"An invalid statement has been passed into the parser.")
+				"An invalid statement has been passed into the self.")
 
 		indexOfEquals = codeBlocks.index(operator)
 		leftHandSide = codeBlocks[0:indexOfEquals]
 		rightHandSide = codeBlocks[indexOfEquals + 1:]
 		return leftHandSide, rightHandSide
 
-	def assign(key, value):
-		temp = Parser.inferType(Object(value, "type-unknown"))
-		InternalStateProvider.setVariable(key, temp.value, temp.type)
+	def assign(self, key, value):
+		temp = self.inferType(Object(value, "type-unknown"))
+		self.stateProvider.setVariable(key, temp.value, temp.type)
 	
-	def evaluate(blocks):
+	def evaluate(self, blocks):
 		if not blocks: raise ParserError("Empty list passed to Evaluate")
 		if len(blocks) == 1: return blocks[0]
 
-		operators = [operator for operator in InternalStateProvider.operators
+		operators = [operator for operator in self.stateProvider.operators
 			if operator in blocks]
 
 		if operators:
-			left, right = Parser.getLeftAndRightOfOperation(blocks, operators[0])
+			left, right = self.getLeftAndRightOfOperation(blocks, operators[0])
 
-			left = InternalStateProvider.tryLookup(left[0])
-			right = InternalStateProvider.tryLookup(right[0])
+			left = self.stateProvider.tryLookup(left[0])
+			right = self.stateProvider.tryLookup(right[0])
 
-			if isinstance(right, Object): right = right.value
-			if isinstance(left, Object): left = left.value
+			if not isinstance(right, Object):
+				right = self.inferType(Object(right, "type-unknown"))
+			if not isinstance(left, Object):
+				left = self.inferType(Object(left, "type-unknown"))
 
-			return str(int(left) + int(right))
+			tempLeft, tempRight ="", ""
+
+			if(left.type == "int"): tempLeft = int(left.value)
+			if(right.type == "int"): tempRight = int(right.value)
+			if(left.type == "string"): tempLeft = left.value[:-1]
+			if(right.type == "string"): tempRight = right.value[1:]
+
+			return str(tempLeft + tempRight)
 
 		raise ParserError("No operator found in statement.")
 
-	def inferType(untypedObject):
+	def inferType(self, untypedObject):
 		if untypedObject.value is None: return Object(None, "null")
 		if "\"" in untypedObject.value: 
 			return Object(untypedObject.value, "string")
