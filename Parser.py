@@ -45,12 +45,9 @@ class Parser:
 		return leftHandSide, rightHandSide
 
 	def assign(key, value):
-		if("\"" in value):
-			value = value[1:-1]
-			InternalStateProvider.setVariable(key, value, "string")
-		else:
-			InternalStateProvider.setVariable(key, int(value), "int")
-
+		temp = Parser.inferType(Object(value, "type-unknown"))
+		InternalStateProvider.setVariable(key, temp.value, temp.type)
+	
 	def evaluate(blocks):
 		if not blocks: raise ParserError("Empty list passed to Evaluate")
 		if len(blocks) == 1: return blocks[0]
@@ -70,6 +67,12 @@ class Parser:
 			return str(int(left) + int(right))
 
 		raise ParserError("No operator found in statement.")
+
+	def inferType(untypedObject):
+		if untypedObject.value is None: return Object(None, "null")
+		if "\"" in untypedObject.value: 
+			return Object(untypedObject.value, "string")
+		return Object(untypedObject.value, "int")
 
 class ParserError(Exception):
 	def __init__(self, value):

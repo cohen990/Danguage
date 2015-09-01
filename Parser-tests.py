@@ -7,7 +7,7 @@ class TestParser_Parse(unittest.TestCase):
 	def test_given_assignment_assigns_5(self):
 		Parser.parse("int i = 5")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 5)
+		self.assertEqual(result.value, '5')
 	def test_givenAssignment_assignsiAsAnInt(self):
 		Parser.parse("int i = 5")
 		result = InternalStateProvider.internalVariables["i"]
@@ -15,11 +15,11 @@ class TestParser_Parse(unittest.TestCase):
 	def test_given_assignment_assigns_10(self):
 		Parser.parse("int i = 10")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 10)
+		self.assertEqual(result.value, '10')
 	def test_given_string_assignment_assigns_superbowl(self):
 		Parser.parse("string sportsEvent = \"superbowl\"")
 		result = InternalStateProvider.internalVariables["sportsEvent"]
-		self.assertEqual(result.value, "superbowl")
+		self.assertEqual(result.value, "\"superbowl\"")
 	def test_givenStringAssignment_assignssportsEventAsString(self):
 		Parser.parse("string sportsEvent = \"superbowl\"")
 		result = InternalStateProvider.internalVariables["sportsEvent"]
@@ -27,19 +27,19 @@ class TestParser_Parse(unittest.TestCase):
 	def test_TwoStatementsAssigningToSameVariable_hasLatest(self):
 		Parser.parse("int i = 5 \n i = 10")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 10)
+		self.assertEqual(result.value, '10')
 	def test_AssignmentWithAddition_StoresTotalValue(self):
 		Parser.parse("int i = 5 + 10")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 15)
+		self.assertEqual(result.value, '15')
 	def test_assignmentWithAdditionFromExistingVariable_StoresFirstValue(self):
 		Parser.parse("int i = 5\n int j = 5 + i")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 5)
+		self.assertEqual(result.value, '5')
 	def test_assignmentWithAdditionFromExistingVariable_StoresSecondValue(self):
 		Parser.parse("int i = 5\n int j = 5 + i")
 		result = InternalStateProvider.internalVariables["j"]
-		self.assertEqual(result.value, 10)
+		self.assertEqual(result.value, '10')
 
 class TestParser_GetStatements(unittest.TestCase):
 	def test_givenEmptyString_ReturnsEmptyString(self):
@@ -60,15 +60,15 @@ class TestParser_Assign(unittest.TestCase):
 	def test_giveniAnd5_Assigns5Toi(self):
 		Parser.assign("i", "5")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 5)
+		self.assertEqual(result.value, '5')
 	def test_giveniAnd15_Assigns15Toi(self):
 		Parser.assign("i", "15")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.value, 15)
+		self.assertEqual(result.value, '15')
 	def test_givenNameAndString_AssignsStringToName(self):
 		Parser.assign("name", "\"string\"")
 		result = InternalStateProvider.internalVariables["name"]
-		self.assertEqual(result.value, "string")
+		self.assertEqual(result.value, "\"string\"")
 	def test_givenNameAndString_AssignsToNameTypeOfString(self):
 		Parser.assign("name", "\"string\"")
 		result = InternalStateProvider.internalVariables["name"]
@@ -76,7 +76,7 @@ class TestParser_Assign(unittest.TestCase):
 	def test_givenNameAndDoubleQuotes_AssignsDoubleQuotesToName(self):
 		Parser.assign("name", "\"\\\"\\\"\"")
 		result = InternalStateProvider.internalVariables["name"]
-		self.assertEqual(result.value, "\\\"\\\"")
+		self.assertEqual(result.value, "\"\\\"\\\"\"")
 
 class TestParser_GetLeftAndRightOfOperation(unittest.TestCase):
 	def test_givenEmptyList_RaiseParserError(self):
@@ -132,6 +132,23 @@ class TestParser_Evaluate(unittest.TestCase):
 	def test_givenStringAddition_ReturnsConcatenatedStrings(self):
 		result = Parser.evaluate(["\"test1\"", "+", "\"test2\""])
 		self.assertEqual(result, "test1test2")
+
+class TestParser_InferType(unittest.TestCase):
+	def test_givenObjectWithEmptyValue_SetsTypeToNull(self):
+		result = Parser.inferType(Object(None, "unknown-type"))
+		self.assertEqual(result.type, "null")
+	def test_givenObjectWithEmptyValue_SetsValueToNone(self):
+		result = Parser.inferType(Object(None, "unknown-type"))
+		self.assertIsNone(result.value)
+	def test_givenObjectWithNumber_DoesntModifyValue(self):
+		result = Parser.inferType(Object("15", "unknown-type"))
+		self.assertEqual(result.value, "15")
+	def test_givenObjectWithNumber_SetsTypeToInt(self):
+		result = Parser.inferType(Object("15", "unknown-type"))
+		self.assertEqual(result.type, "int")
+	def test_givenObjectWithString_SetsTypeToString(self):
+		result = Parser.inferType(Object("\"batmobile\"", "unknown-type"))
+		self.assertEqual(result.type, "string")
 
 if __name__ == '__main__':
 	unittest.main()
