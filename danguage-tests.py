@@ -23,9 +23,6 @@ class TestParserMethods(unittest.TestCase):
 	def test_getStatements_givenEmptyString_ReturnsEmptyString(self):
 		result = Parser.getStatements("")
 		self.assertEqual(result, "")
-	def test_getStatements_givenStatementWithNoSemicolons_RaisesSyntaxError(self):
-		with self.assertRaises(SyntaxError):
-			Parser.getStatements("asdfaasgasa")
 	def test_getStatements_givenSyntacticallyCorrectSingleStatement_ReturnsSingleStatement(self):
 		code = "aisdhpfa asodfhads asdfapodf"
 		statement = Parser.getStatements(code + ";")
@@ -35,11 +32,6 @@ class TestParserMethods(unittest.TestCase):
 		code = ";\n".join(expected) + ";"
 		statements = Parser.getStatements(code)
 		self.assertEqual(expected, statements)
-	def test_getStatements_givenOneCorrectStatementAndOneMissingSemicolon_RaisesSyntaxError(self):
-		expected = ["aisdhpfa asodfhads asdfapodf", "asodfaos asdfoasj asodfjasd"]
-		code = ";\n".join(expected)
-		with self.assertRaises(SyntaxError):
-			statements = Parser.getStatements(code)
 
 class Loader:
 	def load(fileName):
@@ -55,12 +47,9 @@ class Parser:
 
 	def getStatements(code):
 		if not code: return ""
-		if not ";" in code: raise SyntaxError("Missing semicolon")
 		
 		rawStatements = code.split(";");
 		statements = [ statement.strip() for statement in rawStatements if statement]
-		
-		missingSemicolon = [statement for statement in statements if not ";" in statement]
 
 		return statements
 
