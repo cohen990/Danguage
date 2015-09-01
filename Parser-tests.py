@@ -1,13 +1,5 @@
 import unittest
-# import pdb #-> put this in as a break point "pdb.set_trace()"
-
-class TestLoadMethods(unittest.TestCase):
-	def test_load_given_empty_returns_none(self):
-		self.assertIsNone(Loader.load(""))
-
-	def test_load_given_missing_file_raises(self):
-		with self.assertRaises(IOError):
-			Loader.load("poop.dan")
+from Parser import *
 
 class TestParser_Parse(unittest.TestCase):
 	def test_given_empty_returns_nothing(self):
@@ -98,110 +90,14 @@ class TestParser_GetLeftAndRightOfOperation(unittest.TestCase):
 		left, right = Parser.getLeftAndRightOfOperation(inputList, '=')
 		self.assertEqual(right, ["5", "+", "10"])
 
-class TestEvaluator_Evaluate(unittest.TestCase):
+class TestParser_Evaluate(unittest.TestCase):
 	def test_givenEmpty_RaisesParserError(self):
-		with self.assertRaises(ParserError): Evaluator.evaluate([])
+		with self.assertRaises(ParserError): Parser.evaluate([])
 	def test_givenSingleThing_ReturnsInput(self):
-		result = Evaluator.evaluate(["15"])
+		result = Parser.evaluate(["15"])
 		self.assertEqual(result, "15")
 	def test_givenAddition_ReturnsAddedThings(self):
-		result = Evaluator.evaluate(["15", "+", "10"])
+		result = Parser.evaluate(["15", "+", "10"])
 		self.assertEqual(result, "25")
-
-class Loader:
-	def load(fileName):
-		if(fileName == ""):
-			return
-		raise IOError
-
-class Parser:
-	def parse(code):
-		if(code == ""): return
-		statements = Parser.getStatements(code=code)
-		for statement in statements:
-			if("=" in statement):
-				Parser.parseAssignmentStatement(statement)
-
-	def getStatements(code):
-		if not code: return [""]
-		
-		rawStatements = code.split("\n");
-		statements = [ statement.strip() for statement in rawStatements 
-			if statement]
-
-		return statements
-
-	def parseAssignmentStatement(statement):
-		codeBlocks = statement.split()
-
-		leftHandSide, rightHandSide = Parser.getLeftAndRightOfOperation(
-			codeBlocks, '=')
-
-		rightHandSideValue = rightHandSide[0]
-
-		if(len(rightHandSide) > 1):
-			rightHandSideValue = Evaluator.evaluate(rightHandSide)
-
-		if(leftHandSide[0] in InternalStateProvider.knownTypes):
-			Parser.assign(key=leftHandSide[1], value=rightHandSideValue)
-		else:
-			Parser.assign(key=leftHandSide[0], value=rightHandSideValue)
-
-	def getLeftAndRightOfOperation(codeBlocks, operator):
-		if not codeBlocks or operator not in codeBlocks:
-			raise ParserError(
-				"An invalid statement has been passed into the parser.")
-
-		indexOfEquals = codeBlocks.index(operator)
-		leftHandSide = codeBlocks[0:indexOfEquals]
-		rightHandSide = codeBlocks[indexOfEquals + 1:]
-		return leftHandSide, rightHandSide
-
-	def assign(key, value):
-		if("\"" in value):
-			value = value[1:-1]
-			InternalStateProvider.setVariable(key, value, "string")
-		else:
-			InternalStateProvider.setVariable(key, int(value), "int")
-
-class SyntaxError(Exception):
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return repr(self.value)
-class ParserError(Exception):
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return repr(self.value)
-
-class InternalStateProvider:
-	internalVariables = {}
-	knownTypes = ["int", "string"]
-	operators = ["+"]
-	def getVariable(key):
-		return
-	def setVariable(key, value, objectType):
-		InternalStateProvider.internalVariables[key] = Object(value, objectType)
-
-class Evaluator:
-	def evaluate(blocks):
-		if not blocks: raise ParserError("Empty list passed to Evaluate")
-		if len(blocks) == 1: return blocks[0]
-
-		operators = [operator for operator in InternalStateProvider.operators
-			if operator in blocks]
-
-		if operators:
-			left, right = Parser.getLeftAndRightOfOperation(blocks, operators[0])
-			return str(int(left[0]) + int(right[0]))
-
-		raise ParserError("No operator found in statement.")
-
-class Object:
-	def __init__(self, value, objectType):
-		self.value = value
-		self.objectType = objectType
-
 if __name__ == '__main__':
 	unittest.main()
