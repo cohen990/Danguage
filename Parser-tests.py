@@ -11,7 +11,7 @@ class TestParser_Parse(unittest.TestCase):
 	def test_givenAssignment_assignsiAsAnInt(self):
 		Parser.parse("int i = 5")
 		result = InternalStateProvider.internalVariables["i"]
-		self.assertEqual(result.objectType, "int")
+		self.assertEqual(result.type, "int")
 	def test_given_assignment_assigns_10(self):
 		Parser.parse("int i = 10")
 		result = InternalStateProvider.internalVariables["i"]
@@ -23,7 +23,7 @@ class TestParser_Parse(unittest.TestCase):
 	def test_givenStringAssignment_assignssportsEventAsString(self):
 		Parser.parse("string sportsEvent = \"superbowl\"")
 		result = InternalStateProvider.internalVariables["sportsEvent"]
-		self.assertEqual(result.objectType, "string")
+		self.assertEqual(result.type, "string")
 	def test_TwoStatementsAssigningToSameVariable_hasLatest(self):
 		Parser.parse("int i = 5 \n i = 10")
 		result = InternalStateProvider.internalVariables["i"]
@@ -32,6 +32,14 @@ class TestParser_Parse(unittest.TestCase):
 		Parser.parse("int i = 5 + 10")
 		result = InternalStateProvider.internalVariables["i"]
 		self.assertEqual(result.value, 15)
+	def test_assignmentWithAdditionFromExistingVariable_StoresFirstValue(self):
+		Parser.parse("int i = 5\n int j = 5 + i")
+		result = InternalStateProvider.internalVariables["i"]
+		self.assertEqual(result.value, 5)
+	def test_assignmentWithAdditionFromExistingVariable_StoresSecondValue(self):
+		Parser.parse("int i = 5\n int j = 5 + i")
+		result = InternalStateProvider.internalVariables["j"]
+		self.assertEqual(result.value, 10)
 
 class TestParser_GetStatements(unittest.TestCase):
 	def test_givenEmptyString_ReturnsEmptyString(self):
@@ -61,6 +69,10 @@ class TestParser_Assign(unittest.TestCase):
 		Parser.assign("name", "\"string\"")
 		result = InternalStateProvider.internalVariables["name"]
 		self.assertEqual(result.value, "string")
+	def test_givenNameAndString_AssignsToNameTypeOfString(self):
+		Parser.assign("name", "\"string\"")
+		result = InternalStateProvider.internalVariables["name"]
+		self.assertEqual(result.type, "string")
 	def test_givenNameAndDoubleQuotes_AssignsDoubleQuotesToName(self):
 		Parser.assign("name", "\"\\\"\\\"\"")
 		result = InternalStateProvider.internalVariables["name"]
@@ -99,5 +111,27 @@ class TestParser_Evaluate(unittest.TestCase):
 	def test_givenAddition_ReturnsAddedThings(self):
 		result = Parser.evaluate(["15", "+", "10"])
 		self.assertEqual(result, "25")
+	def test_givenAdditionWithStoredVariableOnRHS_ReturnsAddedThings(self):
+		InternalStateProvider.setVariable("i", "10", "int")
+		result = Parser.evaluate(["5", "+", "i"])
+		self.assertEqual(result, "15")
+	def test_givenAdditionWithStoredVariableOnLHS_ReturnsAddedThings(self):
+		InternalStateProvider.setVariable("i", "10", "int")
+		result = Parser.evaluate(["i", "+", "10"])
+		self.assertEqual(result, "20")
+	def test_givenAdditionWithStoredVariableOnBothSides_ReturnsAddedThings(self):
+		InternalStateProvider.setVariable("i", "10", "int")
+		InternalStateProvider.setVariable("j", "100", "int")
+		result = Parser.evaluate(["i", "+", "j"])
+		self.assertEqual(result, "110")
+	def test_givenAdditionWithStoredVariableOnBothSides_ReturnsAddedThings(self):
+		InternalStateProvider.setVariable("i", "10", "int")
+		InternalStateProvider.setVariable("j", "100", "int")
+		result = Parser.evaluate(["i", "+", "j"])
+		self.assertEqual(result, "110")
+	def test_givenStringAddition_ReturnsConcatenatedStrings(self):
+		result = Parser.evaluate(["\"test1\"", "+", "\"test2\""])
+		self.assertEqual(result, "test1test2")
+
 if __name__ == '__main__':
 	unittest.main()

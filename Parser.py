@@ -1,4 +1,5 @@
 from InternalStateProvider import *
+import re
 
 class Parser:
 	def parse(code):
@@ -59,7 +60,14 @@ class Parser:
 
 		if operators:
 			left, right = Parser.getLeftAndRightOfOperation(blocks, operators[0])
-			return str(int(left[0]) + int(right[0]))
+
+			left = InternalStateProvider.tryLookup(left[0])
+			right = InternalStateProvider.tryLookup(right[0])
+
+			if isinstance(right, Object): right = right.value
+			if isinstance(left, Object): left = left.value
+
+			return str(int(left) + int(right))
 
 		raise ParserError("No operator found in statement.")
 
