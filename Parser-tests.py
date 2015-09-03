@@ -174,6 +174,9 @@ class TestParser_Evaluate(unittest.TestCase):
 	def test_givenStringAndIntAddition_RaisesTypeError(self):
 		with self.assertRaises(TypeError):
 			self.parser.evaluate(["\"test1\"", "+", "42"])
+	def test_givenBlocksWithoutOperator_RaisesParserError(self):
+		with self.assertRaises(ParserError):
+			self.parser.evaluate(["\"test1\"", "42"])
 
 class TestParser_InferType(unittest.TestCase):
 	def setUp(self):
@@ -197,6 +200,14 @@ class TestParser_InferType(unittest.TestCase):
 	def test_givenObjectWithString_SetsTypeToString(self):
 		result = self.parser.inferType(Object("\"batmobile\"", "unknown-type"))
 		self.assertEqual(result.type, "string")
+
+class TestParserError___str__(unittest.TestCase):
+	def test_initializedWithEmptyString_ReturnsName(self):
+		error = ParserError("")
+		self.assertEqual(str(error), "''");
+	def test_initializedWithEmptyString_ReturnsName(self):
+		error = ParserError("Unable to parse")
+		self.assertEqual(str(error), "'Unable to parse'");
 
 if __name__ == '__main__':
 	unittest.main()
