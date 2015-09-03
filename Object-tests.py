@@ -16,3 +16,4 @@ class TestObject___repr__(unittest.TestCase):
 	def test_initializedWith15AndInt_Returns15_int(self):
 		thisObject = Object("15", "int")
 		self.assertEqual(repr(thisObject), "15 <int>")
+ 
