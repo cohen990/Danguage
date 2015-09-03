@@ -14,12 +14,27 @@ class TestBaseObject_addFunction(unittest.TestCase):
 		example = BaseObject.BaseObject()
 		with self.assertRaises(TypeError):
 			example.addFunction(None)
-	def test_givenString_poops(self):
+	def test_givenString_RaisesTypeError(self):
 		example = BaseObject.BaseObject()
 		with self.assertRaises(TypeError):
 			example.addFunction("poop")
 	def test_givenADFunction_AddsToFunctions(self):
 		example = BaseObject.BaseObject()
-		function = BaseObject.DFunction([], None)
+		function = BaseObject.DFunction("exampleFunction", [], None)
 		example.addFunction(function)
 		self.assertIn(function, example.functions)
+
+class TestBaseObject_addProperty(unittest.TestCase):
+	def test_givenNone_RaisesTypeError(self):
+		example = BaseObject.BaseObject()
+		with self.assertRaises(TypeError):
+			example.addProperty(None)
+	def test_givenString_RaisesTypError(self):
+		example = BaseObject.BaseObject()
+		with self.assertRaises(TypeError):
+			example.addFunction("poop")
+	def test_givenADFunction_AddsToFunctions(self):
+		example = BaseObject.BaseObject()
+		dProperty = BaseObject.DProperty([], None)
+		example.addProperty(dProperty)
+		self.assertIn(dProperty, example.properties)
