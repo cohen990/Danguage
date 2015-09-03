@@ -49,7 +49,7 @@ class Parser:
 
 	def assign(self, key, value):
 		temp = self.inferType(Object(value, "type-unknown"))
-		self.stateProvider.setVariable(key, temp.value, temp.type)
+		self.stateProvider.setVariable(key, temp)
 	
 	def evaluate(self, blocks):
 		if not blocks: raise ParserError("Empty list passed to Evaluate")
@@ -69,22 +69,20 @@ class Parser:
 			if not isinstance(left, Object):
 				left = self.inferType(Object(left, "type-unknown"))
 
-			tempLeft, tempRight ="", ""
+			operation = operators[0]
 
-			if(left.type == "int"): tempLeft = int(left.value)
-			if(right.type == "int"): tempRight = int(right.value)
-			if(left.type == "string"): tempLeft = left.value[:-1]
-			if(right.type == "string"): tempRight = right.value[1:]
+			if not operation in left.operators:
+				raise TypeError("Cant poop")
 
-			return str(tempLeft + tempRight)
+			return str(left.operators[operation](right.value))
 
 		raise ParserError("No operator found in statement.")
 
 	def inferType(self, untypedObject):
 		if untypedObject.value is None: return Object(None, "null")
 		if "\"" in untypedObject.value: 
-			return Object(untypedObject.value, "string")
-		return Object(untypedObject.value, "int")
+			return DString(untypedObject.value)
+		return DInt(untypedObject.value)
 
 class ParserError(Exception):
 	def __init__(self, value):

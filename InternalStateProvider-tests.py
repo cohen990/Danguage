@@ -1,6 +1,6 @@
 import unittest
 from InternalStateProvider import *
-from Object import *
+from Types import *
 import pdb
 
 class TestInternalStateProvider_tryLookup(unittest.TestCase):
@@ -64,28 +64,28 @@ class TestInternalStateProvider_setVariable(unittest.TestCase):
 		self.stateProvider.clearState()
 		
 	def test_setTwo_FirstIsCorrect(self):
-		self.stateProvider.setVariable("key1", "5", "int")
-		self.stateProvider.setVariable("key2", "10", "int")
+		self.stateProvider.setVariable("key1", DInt(5))
+		self.stateProvider.setVariable("key2", DInt(10))
 		result = self.stateProvider.internalVariables["key1"]
-		self.assertEqual(result.value, '5')
+		self.assertEqual(result.value, 5)
 	def test_setTwo_SecondIsCorrect(self):
-		self.stateProvider.setVariable("key1", "5", "int")
-		self.stateProvider.setVariable("key2", "10", "int")
+		self.stateProvider.setVariable("key1", DInt(5))
+		self.stateProvider.setVariable("key2", DInt(10))
 		result = self.stateProvider.internalVariables["key2"]
-		self.assertEqual(result.value, '10')
+		self.assertEqual(result.value, 10)
 		
 	def test_setTwoWithTryLookupInBetween_FirstIsCorrect(self):
-		self.stateProvider.setVariable("key1", "5", "int")
+		self.stateProvider.setVariable("key1", DInt(5))
 		self.stateProvider.tryLookup("key1")
-		self.stateProvider.setVariable("key2", "10", "int")
+		self.stateProvider.setVariable("key2", DInt(10))
 		result = self.stateProvider.internalVariables["key1"]
-		self.assertEqual(result.value, '5')
+		self.assertEqual(result.value, 5)
 	def test_setTwoWithTryLookupInBetween_SecondIsCorrect(self):
-		self.stateProvider.setVariable("key1", "5", "int")
+		self.stateProvider.setVariable("key1", DInt(5))
 		self.stateProvider.tryLookup("key1")
-		self.stateProvider.setVariable("key2", "10", "int")
+		self.stateProvider.setVariable("key2", DInt(10))
 		result = self.stateProvider.internalVariables["key2"]
-		self.assertEqual(result.value, '10')
+		self.assertEqual(result.value, 10)
 
 
 if __name__ == '__main__':

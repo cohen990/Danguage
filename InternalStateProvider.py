@@ -1,17 +1,17 @@
-from Object import *
+from Types import *
 
 class InternalStateProvider:
 	def __init__(self):
 		self.clearState()
 
 	__defaultKnownTypes = ["int", "string"]
-	__defaultOperators = ["+"]
+	__defaultOperators = ["+", "-", "*", "/"]
 
 	def getVariable(self, key):
 		if not key: raise ValueError("key cannot be empty")
 		return self.internalVariables[key]
-	def setVariable(self, key, value, objectType):
-		self.internalVariables[key] = Object(value, objectType)
+	def setVariable(self, key, value):
+		self.internalVariables[key] = value
 	def tryLookup(self, key):
 		if not key: raise ValueError("key cannot be empty")
 		if key in self.internalVariables:
