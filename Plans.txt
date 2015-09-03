@@ -1,0 +1,13 @@
+want to have all objects inherit from a base object class
+
+all objects have a collection of functions and operators
+
+operators follow object
+functions are dotted after objects (c-like language)? or should the look like operators?
+
+system print "hello my name is Dan"
+or system.print("hello my name is Dan")
+
+since it's newline delimited, the first could work.
+
+if object InheritsFrom potentialParent
