@@ -80,5 +80,5 @@ class DString(Object):
 			Object.CheckType(value, string, str, "+")
 			if string.startswith("\"") and string.endswith("\""): string = string[1:-1]
 
-			return value + string
+			return "\"" + value + string + "\""
 		return func

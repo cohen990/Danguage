@@ -71,7 +71,7 @@ class TestDString___init__(unittest.TestCase):
 	def test_givenString_CanAddAnotherString(self):
 		string = DString("\"test1\"")
 		operator = string.operators["+"]
-		self.assertEqual(operator("\"test2\""), "test1test2")
+		self.assertEqual(operator("\"test2\""), "\"test1test2\"")
 
 if __name__ == "__main__":
 	unittest.main()

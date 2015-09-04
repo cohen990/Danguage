@@ -1,0 +1,8 @@
+string hello = "hello"
+string world = "world"
+print hello + ", " + world
+
+int i = 15
+int j = 25
+
+print i + j

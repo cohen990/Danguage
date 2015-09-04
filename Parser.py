@@ -9,8 +9,16 @@ class Parser:
 		if(code == ""): return
 		statements = self.getStatements(code=code)
 		for statement in statements:
-			if("=" in statement):
+			if statement.startswith("print "):
+				self.DPrint(statement)
+			elif "=" in statement:
 				self.parseAssignmentStatement(statement)
+
+	def DPrint(self, code):
+		codeBlocks = self.getTokens(code)
+		del codeBlocks[0]
+		result = self.evaluate(codeBlocks)
+		print(result)
 
 	def getStatements(self, code):
 		if not code: return [""]
@@ -21,8 +29,38 @@ class Parser:
 
 		return statements
 
+	def getTokens(self, statement, debug = False):
+		if not statement: raise ValueError("statement is null or empty")
+		if debug: print("\nstatement: " +  statement)
+		discoveredTokens = []
+		lastIndex = 0
+		inString = False
+		escaped = False
+
+		for index, character in enumerate(statement):
+			toggleString = False
+			if debug: print("######\nchar: ", character)
+			if debug: print("char == \\\\: ", character == "\\")
+			if debug: print("inString: ", inString)
+			if character == "\\": escaped = not escaped
+			if debug: print("escaped: ", escaped)
+			if not escaped and character == "\"":
+				toggleString = True
+			if debug: print("toggleString: ", toggleString)
+
+			if toggleString:
+				inString = not inString
+				toggleString = False
+			if character.isspace() and not inString:
+				discoveredTokens.append(statement[lastIndex:index])
+				lastIndex = index + 1
+
+		discoveredTokens.append(statement[lastIndex:])
+
+		return discoveredTokens
+
 	def parseAssignmentStatement(self, statement):
-		codeBlocks = statement.split()
+		codeBlocks = self.getTokens(statement)
 
 		leftHandSide, rightHandSide = self.getLeftAndRightOfOperation(
 			codeBlocks, '=')
@@ -38,9 +76,12 @@ class Parser:
 			self.assign(key=leftHandSide[0], value=rightHandSideValue)
 
 	def getLeftAndRightOfOperation(self, codeBlocks, operator):
-		if not codeBlocks or operator not in codeBlocks:
+		if not codeBlocks:
 			raise ParserError(
-				"An invalid statement has been passed into the self.")
+				"An empty statement has been passed into the parser.")
+		if operator not in codeBlocks:
+			raise ParserError(
+				"No operator found in code: " + str(codeBlocks))
 
 		indexOfEquals = codeBlocks.index(operator)
 		leftHandSide = codeBlocks[0:indexOfEquals]
@@ -48,7 +89,7 @@ class Parser:
 		return leftHandSide, rightHandSide
 
 	def assign(self, key, value):
-		temp = self.inferType(Object(value, "type-unknown"))
+		temp = self.inferType(value)
 		self.stateProvider.setVariable(key, temp)
 	
 	def evaluate(self, blocks):
@@ -58,31 +99,60 @@ class Parser:
 		operators = [operator for operator in self.stateProvider.operators
 			if operator in blocks]
 
-		if operators:
-			left, right = self.getLeftAndRightOfOperation(blocks, operators[0])
+		if not operators: raise ParserError("No operator found in statement.")
 
-			left = self.stateProvider.tryLookup(left[0])
-			right = self.stateProvider.tryLookup(right[0])
+		while("/" in blocks):
+			blocks = self.evaluateOperator(blocks, "/")
 
-			if not isinstance(right, Object):
-				right = self.inferType(Object(right, "type-unknown"))
-			if not isinstance(left, Object):
-				left = self.inferType(Object(left, "type-unknown"))
+		while("*" in blocks):
+			blocks = self.evaluateOperator(blocks, "*")
 
-			operation = operators[0]
+		while("+" in blocks):
+			blocks = self.evaluateOperator(blocks, "+")
 
-			if not operation in left.operators:
-				raise TypeError("Cant poop")
+		while("-" in blocks):
+			blocks = self.evaluateOperator(blocks, "-")
 
-			return str(left.operators[operation](right.value))
+		return blocks[0]
+		
+	def evaluateOperator(self, codeBlocks, targetOperator):
+		if not codeBlocks or not targetOperator:
+			raise ValueError("Cannot evaluate 'None'")
+		if targetOperator not in codeBlocks:
+			raise ParserError(
+				"Operator '"+targetOperator+
+				"' not found in " + str(codeBlocks) + ".")
 
-		raise ParserError("No operator found in statement.")
+		indexOfOperator = codeBlocks.index(targetOperator)
+
+
+		left = self.stateProvider.tryLookup(codeBlocks[indexOfOperator - 1])
+		right = self.stateProvider.tryLookup(codeBlocks[indexOfOperator + 1])
+
+		if not isinstance(right, Object):
+			right = self.inferType(right)
+		if not isinstance(left, Object):
+			left = self.inferType(left)
+
+		if not targetOperator in left.operators:
+			raise TypeError(
+				"Object of type '" + left.type +
+				"' does not define operator '"+ targetOperator + "'.")
+
+		result = str(left.operators[targetOperator](right.value))
+
+		del codeBlocks[indexOfOperator + 1]
+		del codeBlocks[indexOfOperator - 1]
+
+		codeBlocks[indexOfOperator - 1] = result
+
+		return codeBlocks
 
 	def inferType(self, untypedObject):
-		if untypedObject.value is None: return Object(None, "null")
-		if "\"" in untypedObject.value: 
-			return DString(untypedObject.value)
-		return DInt(untypedObject.value)
+		if untypedObject is None: return Object(None, "null")
+		if "\"" in str(untypedObject): 
+			return DString(untypedObject)
+		return DInt(untypedObject)
 
 class ParserError(Exception):
 	def __init__(self, value):

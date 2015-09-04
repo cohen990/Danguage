@@ -55,6 +55,16 @@ class TestParser_Parse(unittest.TestCase):
 		self.parser.parse("int i = 5\n int j = 15")
 		result = self.stateProvider.internalVariables["j"]
 		self.assertEqual(result.value, 15)
+	def test_complexAssignment_StoresCorrectValue(self):
+		self.parser.parse("int i = 5 + 15 + 32 / 16")
+		result = self.stateProvider.internalVariables["i"]
+		self.assertEqual(result.value, 22)
+	def test_givenPrintCommand_DoesntThrow(self):
+		result=self.parser.parse("print 5")
+	def test_givenPrintCommandWithMathematics_DoesntThrow(self):
+		result=self.parser.parse("print 5 + 13")
+	def test_givenPrintCommandWithConcatenation_DoesntThrow(self):
+		result=self.parser.parse("print \"poop\" + \"wee\"")
 
 class TestParser_GetStatements(unittest.TestCase):
 	def setUp(self):
@@ -170,7 +180,7 @@ class TestParser_Evaluate(unittest.TestCase):
 		self.assertEqual(result, "110")
 	def test_givenStringAddition_ReturnsConcatenatedStrings(self):
 		result = self.parser.evaluate(["\"test1\"", "+", "\"test2\""])
-		self.assertEqual(result, "test1test2")
+		self.assertEqual(result, "\"test1test2\"")
 	def test_givenStringAndIntAddition_RaisesTypeError(self):
 		with self.assertRaises(TypeError):
 			self.parser.evaluate(["\"test1\"", "+", "42"])
@@ -189,6 +199,55 @@ class TestParser_Evaluate(unittest.TestCase):
 	def test_intDivision_DividesAndReturnsClosestInt(self):
 		result = self.parser.evaluate(["5", "/", "3"])
 		self.assertEqual(result, "1")
+	def test_chainedAdditions_PerformsBothAdditions(self):
+		result = self.parser.evaluate(["5", "+", "4", "+", "3"])
+		self.assertEqual(result, "12")
+	def test_additionThenDivision_PerformsDivisionThenAddition(self):
+		result = self.parser.evaluate(["5", "+", "6", "/", "3"])
+		self.assertEqual(result, "7")
+	def test_divisionThenAddition_PerformsDivisionThenAddition(self):
+		result = self.parser.evaluate(["6", "/", "3", "+", "5"])
+		self.assertEqual(result, "7")
+
+class TestParser_EvaluateOperator(unittest.TestCase):
+	def setUp(self):
+		self.stateProvider = InternalStateProvider()
+		self.parser = Parser(self.stateProvider)
+	def tearDown(self):
+		self.stateProvider.clearState()
+
+	def test_givenNoneCodeBlocks_RaisesValueError(self):
+		with self.assertRaises(ValueError):
+			self.parser.evaluateOperator(
+				codeBlocks = None, targetOperator = "+")
+	def test_givenNone_RaisesValueError(self):
+		with self.assertRaises(ValueError):
+			self.parser.evaluateOperator(
+				codeBlocks = ["5", "+", "3"], targetOperator = None)
+	def test_givenEmptyCodeBlocks_RaisesValueError(self):
+		with self.assertRaises(ValueError):
+			self.parser.evaluateOperator(
+				codeBlocks = [], targetOperator = "+")
+	def test_givenCodeBlocksWithoutTargetOperator_RaisesParserError(self):
+		with self.assertRaises(ParserError):
+			self.parser.evaluateOperator(
+				codeBlocks = ["5", "2"], targetOperator = "+")
+	def test_given5Plus2_Returns7(self):
+		result = self.parser.evaluateOperator(
+			codeBlocks = ["5", "+", "2"], targetOperator = "+")
+		self.assertEqual(result, ["7"])
+	def test_given6Divided2_Returns3(self):
+		result = self.parser.evaluateOperator(
+			codeBlocks = ["6", "/", "2"], targetOperator = "/")
+		self.assertEqual(result, ["3"])
+	def test_given6Divided2Plus3WithTargetDivide_Returns3(self):
+		result = self.parser.evaluateOperator(
+			codeBlocks = ["6", "/", "2", "+", "3"], targetOperator = "/")
+		self.assertEqual(result, ["3", "+", "3"])
+	def test_given6Divided2Plus3WithTargetPlus_Returns5(self):
+		result = self.parser.evaluateOperator(
+			codeBlocks = ["6", "/", "2", "+", "3"], targetOperator = "+")
+		self.assertEqual(result, ["6", "/", "5"])
 
 class TestParser_InferType(unittest.TestCase):
 	def setUp(self):
@@ -198,20 +257,43 @@ class TestParser_InferType(unittest.TestCase):
 		self.stateProvider.clearState()
 		
 	def test_givenObjectWithEmptyValue_SetsTypeToNull(self):
-		result = self.parser.inferType(Object(None, "unknown-type"))
+		result = self.parser.inferType(None)
 		self.assertEqual(result.type, "null")
 	def test_givenObjectWithEmptyValue_SetsValueToNone(self):
-		result = self.parser.inferType(Object(None, "unknown-type"))
+		result = self.parser.inferType(None)
 		self.assertIsNone(result.value)
 	def test_givenObjectWithNumber_DoesntModifyValue(self):
-		result = self.parser.inferType(Object("15", "unknown-type"))
+		result = self.parser.inferType("15")
 		self.assertEqual(result.value, 15)
 	def test_givenObjectWithNumber_SetsTypeToInt(self):
-		result = self.parser.inferType(Object("15", "unknown-type"))
+		result = self.parser.inferType("15")
 		self.assertEqual(result.type, "int")
 	def test_givenObjectWithString_SetsTypeToString(self):
-		result = self.parser.inferType(Object("\"batmobile\"", "unknown-type"))
+		result = self.parser.inferType("\"batmobile\"")
 		self.assertEqual(result.type, "string")
+
+class TestParser_GetTokens(unittest.TestCase):
+	def setUp(self):
+		self.stateProvider = InternalStateProvider()
+		self.parser = Parser(self.stateProvider)
+	def tearDown(self):
+		self.stateProvider.clearState()
+
+	def test_givenNoneStatement_RaiseValueError(self):
+		with self.assertRaises(ValueError):
+			self.parser.getTokens(None)
+	def test_givenEmptyStatement_RaiseValueError(self):
+		with self.assertRaises(ValueError):
+			self.parser.getTokens("")
+	def test_givenSpacedOutStatement_ReturnsTokens(self):
+		result = self.parser.getTokens("int i = 5")
+		self.assertEqual(result, ["int", "i", "=", "5"])
+	def test_givenStringWithWhitespace_ReturnsStringIntact(self):
+		result = self.parser.getTokens(r'"test string"')
+		self.assertEqual(result, [r'"test string"'])
+	def test_givenStringWithWhitespace_ReturnsStringIntact(self):
+		result = self.parser.getTokens(r'"\"hello, world!\""')
+		self.assertEqual(result, [r'"\"hello, world!\""'])
 
 class TestParserError___str__(unittest.TestCase):
 	def test_initializedWithEmptyString_ReturnsName(self):
