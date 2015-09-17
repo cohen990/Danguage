@@ -48,6 +48,18 @@ class TestAssembler_GetByteCodeForLine(unittest.TestCase):
 	def test_givenENDWithoutNewLine_returns_0x04(self):
 		result = self.assembler.GetByteCodeForLine(" END")
 		self.assertEqual(result, ['0x04'])
+	def test_givenCOMPAWithoutArguments_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPA\n")
+	def test_givenCMPAWithArg10_Returns0x05_0x0A(self):
+		result = self.assembler.GetByteCodeForLine(" CMPA #10\n")
+		self.assertEqual(result, ['0x05', '0x0A'])
+	def test_givenCMPAWith2Args_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPA #10 #20\n")
+	def test_givenCMPAWith0x15_RaisesAssemblerError(self):
+		result = self.assembler.GetByteCodeForLine(" CMPA #$0x15\n")
+		self.assertEqual(result, ['0x05', '0x15'])
 
 if __name__ == "__main__":
 	unittest.main()

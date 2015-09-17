@@ -4,6 +4,16 @@ class Assembler:
 	def __init__(self):
 		return
 
+	def ValidateArgs(self, operator, operands, numOperands):
+		if not len(operands) == numOperands:
+			message = "'"+operator+"' requires "+str(numOperands)+" operand"
+
+			if(numOperands > 1):
+				message += "s"
+
+			raise AssemblerError(message)
+
+
 	def GetByteCodeForLine(self, line):
 		if line[0].isspace():
 			byteCode = []
@@ -13,16 +23,13 @@ class Assembler:
 			operator, operands = splitLine[0], splitLine[1:]
 
 			if operator == "LDA":
-				if not len(operands) == 1:
-					raise AssemblerError("'LDA' requires 1 operand")
+				self.ValidateArgs(operator, operands, 1)
 				byteCode.append('0x01')
 			elif operator == "LDX":
-				if not len(operands) == 2:
-					raise AssemblerError("'LDX' requires 2 operands")
+				self.ValidateArgs(operator, operands, 2)
 				byteCode.append('0x02')
 			elif operator == "STA":
-				if not len(operands) == 1:
-					raise AssemblerError("'STA' requires 1 operand")
+				self.ValidateArgs(operator, operands, 1)
 				byteCode.append('0x03')
 
 				if not operands[0] == ",X":
@@ -30,9 +37,15 @@ class Assembler:
 
 				return byteCode
 			elif operator == "END":
+				self.ValidateArgs(operator, operands, 0)
 				byteCode.append('0x04')
 
 				return byteCode
+			elif operator == "CMPA":
+				self.ValidateArgs(operator, operands, 1)
+				byteCode.append('0x05')
+			else:
+				raise AssemblerError("Operator not recognised '" + operator + "'.")
 
 			for operand in operands:
 

@@ -17,6 +17,23 @@ For loading data into registers, storing data in memory and ending execution.
 |STA<br>\$03|Stores the value of the A register to a memory location|STA&nbsp;,X| Stores the value of the A register to the memory location pointed to by the X register|
 |END<br>\$04|Terminates the B32 program |END&nbsp;START|Terminate the program and tell our assembler that execution of our program should start at the START label |
 
+## Comparator Mnemonics
+
+Comparisons are assigned to a comparison flag result which is set out as follows.
+
+| 1 byte ||||||||
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|1|2|3|4|**5**|**6**|**7**|**8**|
+|nothing|nothing|nothing|nothing|**Greater Than**|**Less Than**|**Not Equal**|**Equal**|
+
+|Mnemonic|Description|Example| What will this example do?|
+|--------|--------|--------|--------|
+|CMPA<br>\$05|Compares the value of the ‘A’ register |CMPA&nbsp;#\$20|Compares the value of the ‘A’|register with \$20 and sets our internal “compare registers” appropriately|
+|CMPB<br>\$06|Compares the value of the ‘B’ register|CMPB&nbsp;#\$20| Compares the value of the ‘B’ register with \$20 and sets our internal “compare registers” appropriately|
+|CMPX<br>\$07|Compares the value of the ‘X’ register|CMPX&nbsp;#\$A057| Compares the value of the ‘X’ register with \$A057 and sets our internal “compare registers” appropriately|
+|CMPY<br>\$08|Compares the value of the ‘Y’ register|CMPY&nbsp;#\$A057|Compares the value of the ‘Y’ register with \$A057 and sets our internal “compare registers” appropriately|
+|CMPD<br>\$09|Compares the value of the ‘D’ register|CMPD&nbsp;#\$A057| Compares the value of the ‘D’ register with \$A057 and sets our internal “compare registers” appropriately|
+
 # File Format of executables
 
 |Data| Length| Description|
