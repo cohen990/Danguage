@@ -4,6 +4,17 @@ from Assembler import *
 class TestAssembler___init__(unittest.TestCase):
 	def test_init_doesntThrow(self):
 		thisObject = Assembler()
+class TestAssembler_Assemble(unittest.TestCase):
+	def setUp(self):
+		self.assembler = Assembler()
+
+	def test_givenNone_ReturnsEmptyList(self):
+		result = self.assembler.Assemble(None)
+		self.assertEqual(result, [])
+	def test_givenNone_ReturnsEmptyList(self):
+		testAsm = "START:\n LDA #65\n LDX #$A0 #$00\n STA ,X\n LDA #66\n LDX #$A0 #$02\n STA ,X\n LDA #67\n LDX #$A0 #$04\n STA ,X \n END\n"
+		result = self.assembler.Assemble(testAsm)
+		self.assertEqual(result, ['0x01', '0x41', '0x02', '0xA0', '0x00', '0x03', '0x01', '0x42', '0x02', '0xA0', '0x02', '0x03', '0x01', '0x43', '0x02', '0xA0', '0x04', '0x03', '0x04'])
 
 class TestAssembler_GetByteCodeForLine(unittest.TestCase):
 	def setUp(self):
@@ -11,7 +22,7 @@ class TestAssembler_GetByteCodeForLine(unittest.TestCase):
 
 	def test_givenLabel_ReturnsNoByteCode(self):
 		result = self.assembler.GetByteCodeForLine("mylabel\n")
-		self.assertIsNone(result)
+		self.assertEqual(result, [])
 	def test_givenLDAWithoutArgument_RaisesAssemblerError(self):
 		with self.assertRaises(AssemblerError):
 			self.assembler.GetByteCodeForLine(" LDA\n")
