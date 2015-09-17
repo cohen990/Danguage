@@ -57,9 +57,48 @@ class TestAssembler_GetByteCodeForLine(unittest.TestCase):
 	def test_givenCMPAWith2Args_RaisesAssemblerError(self):
 		with self.assertRaises(AssemblerError):
 			self.assembler.GetByteCodeForLine(" CMPA #10 #20\n")
-	def test_givenCMPAWith0x15_RaisesAssemblerError(self):
+	def test_givenCMPAWith0x15_Returns0x05_0x15(self):
 		result = self.assembler.GetByteCodeForLine(" CMPA #$0x15\n")
 		self.assertEqual(result, ['0x05', '0x15'])
+	def test_givenCMPBWithNoArguments_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPB\n")
+	def test_givenCMPBWith10_Returns0x06_0x0A(self):
+		result = self.assembler.GetByteCodeForLine(" CMPB #10\n")
+		self.assertEqual(result, ['0x06', '0x0A'])
+	def test_givenCMPBWith2Args_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPB #10 #20\n")
+	def test_givenCMPBWith0x15_Returns0x06_0x15(self):
+		result = self.assembler.GetByteCodeForLine(" CMPB #$0x15\n")
+		self.assertEqual(result, ['0x06', '0x15'])
+	def test_givenCMPXWithNoArguments_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPX\n")
+	def test_givenCMPXWith1Argument_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			result = self.assembler.GetByteCodeForLine(" CMPX #10\n")
+	def test_givenCMPXWith0x10_0x11_Returns0x07_0x10_0x11(self):
+		result = self.assembler.GetByteCodeForLine(" CMPX #$0x10 #$0x11\n")
+		self.assertEqual(result, ['0x07', '0x10', '0x11'])
+	def test_givenCMPYWithNoArguments_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPY\n")
+	def test_givenCMPYWith1Argument_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			result = self.assembler.GetByteCodeForLine(" CMPY #10\n")
+	def test_givenCMPYWith0x10_0x11_Returns0x08_0x10_0x11(self):
+		result = self.assembler.GetByteCodeForLine(" CMPY #$0x10 #$0x11\n")
+		self.assertEqual(result, ['0x08', '0x10', '0x11'])
+	def test_givenCMPDWithNoArguments_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			self.assembler.GetByteCodeForLine(" CMPD\n")
+	def test_givenCMPDWith1Argument_RaisesAssemblerError(self):
+		with self.assertRaises(AssemblerError):
+			result = self.assembler.GetByteCodeForLine(" CMPD #10\n")
+	def test_givenCMPDWith0x10_0x11_Returns0x09_0x10_0x11(self):
+		result = self.assembler.GetByteCodeForLine(" CMPD #$0x10 #$0x11\n")
+		self.assertEqual(result, ['0x09', '0x10', '0x11'])
 
 if __name__ == "__main__":
 	unittest.main()

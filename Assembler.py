@@ -44,6 +44,18 @@ class Assembler:
 			elif operator == "CMPA":
 				self.ValidateArgs(operator, operands, 1)
 				byteCode.append('0x05')
+			elif operator == "CMPB":
+				self.ValidateArgs(operator, operands, 1)
+				byteCode.append('0x06')
+			elif operator == "CMPX":
+				self.ValidateArgs(operator, operands, 2)
+				byteCode.append('0x07')
+			elif operator == "CMPY":
+				self.ValidateArgs(operator, operands, 2)
+				byteCode.append('0x08')
+			elif operator == "CMPD":
+				self.ValidateArgs(operator, operands, 2)
+				byteCode.append('0x09')
 			else:
 				raise AssemblerError("Operator not recognised '" + operator + "'.")
 
